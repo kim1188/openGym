@@ -77,6 +77,7 @@ as a home-screen app, passkey sign-in, offline support, sync across your phone a
 - 🔔 **Push notifications** — rest-timer alerts even with the app closed, plus an optional reminder on days you have a workout planned but haven't logged one. Opt in per profile; keys are generated on first run, nothing to configure
 - 🔑 **Passkeys, not passwords** — Face ID / Touch ID / fingerprint login; each profile keeps its own data, synced across devices
 - 🛠️ **Admin dashboard** (optional) — for whoever runs the instance: who's training right now, per-user history, disable accounts, and invite-only signup. Off by default, so a fresh instance stays open with no admin
+- 🤖 **Bot token API** (optional) — a Bearer token so an external assistant can read today's plan and append a workout or weigh-in without a passkey, without replacing the whole profile. Off by default; see [docs/SELF_HOSTING.md](docs/SELF_HOSTING.md#8-bot-api-optional)
 - 🎨 **Designed, not assembled** — light/dark themes and 8 accent colors saved to your profile, over a hand-drawn icon set instead of emoji, so it looks the same on every phone
 - 🌍 **12 languages** — full UI translation (EN, DE, ES, FR, IT, PT, PL, TR, RU, ZH, KO, HI); exercise instructions localized in 10 of them, loaded on demand so the app stays fast
 - 📥 **Bring your history with you** — import from **FitNotes** (Android and iOS), **Strong** and **Hevy**, or body weight straight out of an **Apple Health** export. Exercise names are matched against the library and anything unrecognised becomes one of your own exercises, so nothing in the file is dropped
@@ -154,6 +155,8 @@ All via `.env` (see `.env.example`):
 | `RP_NAME`     | Name shown in the passkey prompt                     | `openGym`               |
 | `ADMIN_UIDS`  | User ids that get the admin dashboard (comma-separated) | *(none)*             |
 | `INVITE_ONLY` | Require an invite code to create a profile           | *(off)*                 |
+| `BOT_TOKEN`   | Bearer token for `/api/bot/*` (full read + append on `BOT_UID`) | *(off)*     |
+| `BOT_UID`     | Existing profile the bot acts as                     | *(none)*                |
 
 Push notification keys are generated on first run and saved to `./data/vapid.json` — nothing to set.
 

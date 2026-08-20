@@ -1,0 +1,18 @@
+# Local config — BOT_TOKEN lives here. Never commit a filled-in copy.
+.env
+
+# Instance data: session secret, VAPID keys, per-user state. A dirty
+# snapshot of this folder may already be tracked in git; this only
+# stops new files. Do not deploy a committed data/ as a live instance.
+data/
+
+# Exercise media fetched at first run (~140 MB)
+media/img/
+media/gif/
+
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/ios/App/Pods/
+
+.DS_Store
