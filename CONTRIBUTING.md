@@ -23,7 +23,7 @@ docker compose up -d --build      # api + web + media on :8080
 cd frontend && npm install && npm run dev
 # training logic (progression rules, 1RM, how a session is read back):
 cd frontend && npm test
-# bot token API (auth + fixture today/summary/writes):
+# bot token API (auth + fixture today/summary/writes; no Docker, no repo data/):
 cd api && npm test
 ```
 

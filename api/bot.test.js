@@ -1,3 +1,4 @@
+// Synthetic fixtures in os.tmpdir() only. Never read the repo's committed data/.
 import { describe, it, before, after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';

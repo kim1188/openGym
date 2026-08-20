@@ -109,7 +109,10 @@ Access…) in front still works, and composes with the above.
 
 ## 5. Backups
 
-Everything is in `./data`:
+Everything is in `./data` on the machine that runs the instance (created on first
+start — session `secret`, VAPID keys, `db.json`, `state-*.json`). If a git clone
+already has a `data/` directory, that is leftover snapshot data, not something
+to deploy. Start from an empty folder and let the API generate its own keys.
 
 ```bash
 tar czf opengym-backup-$(date +%F).tar.gz data/
@@ -161,16 +164,20 @@ An external assistant (or any HTTP client) can read and append **one existing pr
 without a passkey and without `PUT /api/data` replacing the whole state file. Off by
 default — same spirit as the admin dashboard.
 
-Set both in `.env` and restart. `BOT_UID` is `users[].id` in `./data/db.json`.
+Set both in `.env` and restart. `BOT_UID` is `users[].id` from **your running
+instance's** `./data/db.json` — create a passkey profile first, then copy that id.
+If this git clone already contains a `data/` folder, treat it as a leftover
+snapshot (it can hold a session `secret`, VAPID keys, and someone else's
+profile). Do not deploy it and do not paste those values into `.env`.
 
 ```bash
-# .env
-BOT_TOKEN=generate-a-long-random-string
-BOT_UID=youruserid
+# .env  — generate your own token; leave empty to keep the feature off
+BOT_TOKEN=
+BOT_UID=
 ```
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
 Leave `BOT_TOKEN` empty (or unset) and every `/api/bot/*` route is **404**; the rest of
