@@ -1,4 +1,4 @@
-import { describe, it, before, after, beforeEach } from 'node:test';
+import { describe, it, before, after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import fs from 'node:fs';
@@ -187,10 +187,11 @@ describe('bot today / summary against a fixture state', () => {
   });
 
   it('honors dayPlan overrides the same way the reminder does', () => {
+    // 2099-01-05 is a Monday (week[1] = r-push); rest override wins, unknown id is ignored.
     assert.equal(effectiveRoutineId({ ...FIXTURE, dayPlan: { '2099-01-05': 'rest' } }, '2099-01-05'), null);
-    assert.equal(effectiveRoutineId({ ...FIXTURE, dayPlan: { '2099-01-04': 'r-push' } }, '2099-01-04'), 'r-push');
-    // 2099-01-04 is a Monday (1) — week[1] is r-push when there is no override
-    assert.equal(effectiveRoutineId({ ...FIXTURE, dayPlan: {} }, '2099-01-04'), 'r-push');
+    assert.equal(effectiveRoutineId({ ...FIXTURE, dayPlan: { '2099-01-05': 'nope' } }, '2099-01-05'), 'r-push');
+    assert.equal(effectiveRoutineId({ ...FIXTURE, dayPlan: { '2099-01-06': 'r-push' } }, '2099-01-06'), 'r-push');
+    assert.equal(effectiveRoutineId({ ...FIXTURE, dayPlan: {} }, '2099-01-05'), 'r-push');
   });
 
   it('GET /api/bot/summary is compact: recent workouts, bodyweight, routines, week — not a library', async () => {
