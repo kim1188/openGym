@@ -155,6 +155,66 @@ docker compose up -d --build
 The app shell is versioned (`?v=N`) so clients pick up changes on next load. Your `./data` and the
 downloaded media are untouched.
 
+## 8. Bot API (optional)
+
+An external assistant (or any HTTP client) can read and append **one existing profile**
+without a passkey and without `PUT /api/data` replacing the whole state file. Off by
+default — same spirit as the admin dashboard.
+
+Set both in `.env` and restart. `BOT_UID` is `users[].id` in `./data/db.json`.
+
+```bash
+# .env
+BOT_TOKEN=generate-a-long-random-string
+BOT_UID=youruserid
+```
+
+```bash
+docker compose up -d
+```
+
+Leave `BOT_TOKEN` empty (or unset) and every `/api/bot/*` route is **404**; the rest of
+the app is unchanged. A missing or wrong `Authorization: Bearer …` header is **401**.
+No session cookie or passkey is involved.
+
+The token is that user's data: full state read, plus append a completed workout or a
+weigh-in. Anyone who has it can do the same. Don't commit it; rotate by changing
+`BOT_TOKEN` and restarting.
+
+Dates are the profile's local calendar day: `reminder.tz` if the user has set a reminder
+timezone, otherwise **UTC**.
+
+```bash
+# today's planned routine + last logged weights
+curl -sS -H "Authorization: Bearer $BOT_TOKEN" \
+  https://gym.example.com/api/bot/today
+
+# compact recent history (not the exercise library)
+curl -sS -H "Authorization: Bearer $BOT_TOKEN" \
+  'https://gym.example.com/api/bot/summary?n=10'
+
+# full state JSON (read-only)
+curl -sS -H "Authorization: Bearer $BOT_TOKEN" \
+  https://gym.example.com/api/bot/state
+
+# append one completed workout — rejected if that date is already logged, unless replace:true
+curl -sS -H "Authorization: Bearer $BOT_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"d":"2026-08-20","name":"Push","routineId":"r-push","entries":[{"id":"0025","sets":[{"w":60,"r":8,"done":true}]}]}' \
+  https://gym.example.com/api/bot/workout
+
+# append / update today's body weight
+curl -sS -H "Authorization: Bearer $BOT_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"w":80.4}' \
+  https://gym.example.com/api/bot/weight
+```
+
+Writes are read-modify-write on `state-<uid>.json`: unknown fields stay, `_ts` is bumped,
+and `active` (an in-progress workout) is never persisted from the bot — same rule as
+`PUT /api/data`. Passkey routes, cookies, the admin dashboard, and whole-state PUT are
+untouched.
+
 ## Troubleshooting
 
 | Symptom | Fix |
@@ -167,3 +227,5 @@ downloaded media are untouched.
 | Day reminder fires at the wrong time | Toggle it off and on in Settings so it re-detects your browser's timezone (also happens automatically on every app load — see section 6). |
 | Want to reset a stuck login | Delete the cookie in your browser; sessions are just signed cookies. |
 | `docker compose pull` fails with "denied" / "unauthorized" | The prebuilt images aren't published yet, or need to be, or the GHCR package is still private — build from source instead (`docker compose up -d --build`). |
+| `/api/bot/*` is 404 | `BOT_TOKEN` is unset or empty — the feature is off. Set it and `BOT_UID` in `.env`, restart (section 8). |
+| `/api/bot/*` is 401 | Missing or wrong `Authorization: Bearer …`. Passkeys and session cookies are ignored on these routes. |

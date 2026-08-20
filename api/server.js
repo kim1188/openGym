@@ -9,6 +9,7 @@ import {
   generateAuthenticationOptions, verifyAuthenticationResponse
 } from '@simplewebauthn/server';
 import webpush from 'web-push';
+import { handleBot } from './bot.js';
 
 const PORT = +(process.env.PORT || 3000);
 const DATA = process.env.DATA_DIR || '/data';
@@ -544,10 +545,16 @@ const routes = {
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   const key = req.method + ' ' + url.pathname;
-  const handler = routes[key];
-  if (!handler) return json(res, 404, { error: 'not found' });
-  try { await handler(req, res); }
-  catch (e) {
+  try {
+    // Bot routes sit outside the passkey/session table. Unset BOT_TOKEN → 404 (feature off).
+    if (url.pathname === '/api/bot' || url.pathname.startsWith('/api/bot/')) {
+      await handleBot(req, res, url, { json, readBody, readState, atomicWrite, stateFile, db });
+      return;
+    }
+    const handler = routes[key];
+    if (!handler) return json(res, 404, { error: 'not found' });
+    await handler(req, res);
+  } catch (e) {
     console.error(key, e);
     if (!res.headersSent) json(res, 500, { error: 'server error' });
   }
